@@ -1,4 +1,4 @@
-#if !defined(TYPES_H)
+#if !defined(SETTLERS_OF_CATAN_TYPES_H)
 
 #include <cstdint>
 #include <cmath>
@@ -36,5 +36,5 @@ typedef real32 r32;
 typedef double_t real64;
 typedef real64 r64;
 
-#define TYPES_H
-#endif // TYPES_H
+#define SETTLERS_OF_CATAN_TYPES_H
+#endif // SETTLERS_OF_CATAN_TYPES_H

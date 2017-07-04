@@ -5,9 +5,11 @@ set(CMAKE_CXX_STANDARD 11)
 
 include_directories(source)
 
+add_definitions(-DSOC_DEBUG)
+
 set(SOURCE_FILES
         source/platform/linux_main.cpp
         source/game.cpp
         source/game.h
-        source/types.h)
+        source/types.h source/util.h)
 add_executable(settlers_of_catan ${SOURCE_FILES})

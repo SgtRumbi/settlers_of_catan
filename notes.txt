@@ -1,0 +1,16 @@
+DESIGN/CODING CONVENTION:
+
+class-/struct-names:
+    lower case, separated by underscore
+
+    class my_class, struct buffer_callback
+
+function-names:
+    upper camel case
+
+    void MyFunctionCreatedByMe()
+
+variable-names:
+    upper camel case
+
+    int32 MyInteger, buffer_callback SimpleRenderCall
