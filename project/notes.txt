@@ -1,0 +1,1 @@
+This folder contains _important_ data for the school-project.
