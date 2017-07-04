@@ -1,0 +1,4 @@
+# Files ignored by git
+
+bin/
+cmake-build-debug/
