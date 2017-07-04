@@ -98,7 +98,7 @@ struct tile {
 struct game_field {
     // The graph of for the game field:
     game_field_graph_node *Nodes;
-    uint32 NodesCount;
+    uint32 NodeCount;
     // Bridges: Adjacency matrix + bridges container at the same time:
     //   -1:        No bridge can be planted because there is no connection between two nodes
     //              TODO(js): Initialisation to -1!

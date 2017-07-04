@@ -21,13 +21,35 @@ SetGameMode(game_state *State, game_mode Mode) {
 
 static void
 BuildGameField(game_field *GameField) {
-    // TODO(js): Implement game_field-initialisation
     // - Create graph
     //    - Create nodes, representing the meeting places of each tiles
     //    - Create edges, representing the bridges
     // - Create list of tiles
     // - Connect nodes to list of tiles -> Every node has to know where on the field he is and which tile it touches
-    Assert(!"Not yet implemented!");
+    // Assert(!"Not yet implemented!");
+
+    // Honeycomb-shape:
+    //      _
+    //    _/ \_
+    //  _/ \_/ \_
+    // / \_/ \_/ \
+    // \_/ \_/ \_/
+    //   \_/ \_/
+    //     \_/
+    //
+    //
+    // Nodes: Corners (30)
+    // TODO(js): Make dynamic
+    u8 CornerCount = 30;
+
+    // Allocate nodes and bridges
+    GameField->Nodes = AllocArray(game_field_graph_node, CornerCount);
+    GameField->NodeCount = CornerCount;
+    ZeroSize(GameField->Nodes, CornerCount*sizeof(game_field_graph_node));
+    GameField->Bridges = AllocArray(int32, CornerCount*CornerCount);
+    ZeroSize(GameField->Bridges, CornerCount*CornerCount*sizeof(int32));
+
+
 }
 
 static void
@@ -73,6 +95,17 @@ UpdateGame() {
     // TODO(js): Process input
 
     // TODO(js): Update game
+    switch(GameState.CurrentMode) {
+        case GameMode_StartPhase: {
+
+        } break;
+
+        case GameMode_GamePhase: {
+
+        } break;
+
+        InvalidDefaultCase;
+    }
 
     // TODO(js): Render game
 }

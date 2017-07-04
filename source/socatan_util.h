@@ -1,5 +1,7 @@
 #if !defined(SETTLERS_OF_CATAN_UTIL_H)
 
+#include <malloc.h>
+
 #if defined(SOC_DEBUG)
 #define Assert(Expr) if(!(Expr)) {printf("'%s' failed!", #Expr); *((int *)0) = 0;}
 #else
@@ -19,6 +21,22 @@ Pow(t Base, t Exp) {
     }
 
     return(Result);
+}
+
+// TODO(js): Get rid of malloc -> Custom memory manager.
+#define AllocStruct(type) ((type *)malloc(sizeof(type)))
+#define AllocArray(type, Count) ((type *)malloc((Count)*sizeof(type)))
+
+#define ZeroSize(Pointer, Size) ZeroSize_((uint8 *)Pointer, Size)
+#define ZeroInstance(Instance) ZeroSize_((uint8 *)Instance, sizeof(Instance))
+// TODO(js): Check if this works.
+#define ZeroArray(Instance, Elements) ZeroSize_((uint8 *)Instance, sizeof(Instance[0])*Elements)
+inline void
+ZeroSize_(uint8 *Pointer, uint32 Size) {
+    uint32 Current = Size;
+    while(Current--) {
+        Pointer[Current] = 0;
+    }
 }
 
 #define SETTLERS_OF_CATAN_UTIL_H
