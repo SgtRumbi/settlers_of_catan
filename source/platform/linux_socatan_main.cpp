@@ -1,5 +1,5 @@
-#include "game.h"
-#include "types.h"
+#include "socatan.h"
+#include "socatan_types.h"
 
 int
 main() {

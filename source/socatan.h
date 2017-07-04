@@ -1,6 +1,8 @@
-#include "types.h"
+#include "socatan_types.h"
 
 #if !defined(SETTLERS_OF_CATAN_GAME_H)
+
+#define MAX_RESOURCES_PER_SLOT 1024
 
 /**
  * Representing different phases of the game:
@@ -106,6 +108,8 @@ struct game_field {
 };
 
 struct game_state {
+    game_mode CurrentMode;
+
     game_field GameField;
 
     // TODO(js): De-hardcode this.
