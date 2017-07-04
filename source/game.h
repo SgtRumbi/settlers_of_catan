@@ -2,6 +2,22 @@
 
 #if !defined(SETTLERS_OF_CATAN_GAME_H)
 
+/**
+ * Representing different phases of the game:
+ *  - Start phase: Every player is meant to pick
+ *     - a color
+ *     - a starting place for his settlement
+ *  - Game phase: Every player plays against each other
+ */
+enum game_mode {
+    GameMode_StartPhase = 0,
+    GameMode_GamePhase = 1
+};
+
+/**
+ * Available resources in the world.
+ * (In a flag-ish kind of way bc fun)
+ */
 enum resource_type {
     ResourceType_Wood = 0x1,
     ResourceType_Stone = 0x2,
@@ -14,12 +30,11 @@ enum resource_type {
 
 /**
  * Type of buildings contained/'containered' by a node.
- * (In a flag-ish kind of way bc fun)
  */
 enum building_type {
-    BuildingType_None = 0x0,
-    BuildingType_Settlement = 0x1,
-    BuildingType_City = 0x2,
+    BuildingType_None = 0,
+    BuildingType_Settlement = 1,
+    BuildingType_City = 2,
 };
 
 /**
@@ -32,13 +47,16 @@ struct resources {
 };
 
 struct player {
-    uint32 ID;
+    uint16 ID;
     // TODO(js): De-hardcode -> Match number of resource_types.
     resources Resources[RESOURCE_COUNT];
 };
 
 /**
  * Returns the amount of resources of a specific type the player currently has on his deck.
+ *
+ * TODO(js): Make resource_type take in a bit-field to get amount of multiple resources. (for example:
+ * GetAmountOfResByType(..., ResourceType_Wood | ResourceType_Stone))
  */
 inline uint32
 GetAmountOfResByType(player *Player, resource_type Type) {
@@ -57,16 +75,19 @@ GetAmountOfResByType(player *Player, resource_type Type) {
     return(Result);
 }
 
-struct building {
+/**
+ * One element of the graph representing the game field.
+ *
+ * Contains: A building type and the owner of the building
+ */
+struct game_field_graph_node {
     building_type Type;
     player *Owner;
 };
 
-/**
- * One element of the graph representing the game field.
- */
-struct game_field_graph_node {
-    building *Building;
+struct tile {
+    resource_type *ResourceType;
+    uint32 DieResult;
 };
 
 /**
@@ -76,7 +97,12 @@ struct game_field {
     // The graph of for the game field:
     game_field_graph_node *Nodes;
     uint32 NodesCount;
-    uint8 *Bridges;
+    // Bridges: Adjacency matrix + bridges container at the same time:
+    //   -1:        No bridge can be planted because there is no connection between two nodes
+    //              TODO(js): Initialisation to -1!
+    //   0:         A bridge can be planted, but the spot is currently empty
+    //   [1; 2e16[: Player-IDs (which player the bridge belongs to)
+    int32 *Bridges;
 };
 
 struct game_state {
