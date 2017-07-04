@@ -4,8 +4,9 @@
 int
 main() {
     bool32 Running = true;
+    input GameInput = {};
     while(Running) {
-        UpdateGame();
+        UpdateGame(&GameInput);
         Running = false;
     }
     return(0);

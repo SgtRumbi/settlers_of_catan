@@ -1,4 +1,5 @@
 #include "socatan_types.h"
+#include "socatan_input.h"
 
 #if !defined(SETTLERS_OF_CATAN_GAME_H)
 
@@ -117,7 +118,7 @@ struct game_state {
     uint32 PlayerCount = 2;
 };
 
-void UpdateGame();
+void UpdateGame(input *GameInput);
 
 #define SETTLERS_OF_CATAN_GAME_H
 #endif // SETTLERS_OF_CATAN_GAME_H

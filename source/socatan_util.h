@@ -12,7 +12,7 @@
 
 template <typename t> inline t
 Pow(t Base, t Exp) {
-    t Result = Base;
+    t Result = 1;
 
     for(uint32 Index = 0;
         Index < Exp;

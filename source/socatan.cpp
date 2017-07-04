@@ -1,5 +1,4 @@
 #include "socatan.h"
-#include "socatan_types.h"
 #include "socatan_util.h"
 
 #include <cstdio>
@@ -48,8 +47,6 @@ BuildGameField(game_field *GameField) {
     ZeroSize(GameField->Nodes, CornerCount*sizeof(game_field_graph_node));
     GameField->Bridges = AllocArray(int32, CornerCount*CornerCount);
     ZeroSize(GameField->Bridges, CornerCount*CornerCount*sizeof(int32));
-
-
 }
 
 static void
@@ -75,7 +72,7 @@ InitializePlayers(player *Players, uint32 PlayerCount) {
 }
 
 void
-UpdateGame() {
+UpdateGame(input *GameInput) {
     //
     // NOTE(js): Explanation: This is set up in this weird way to be able to _later_ run this in a game loop -> have
     // initialisation, update and render in one call (-> Platform-layer just has to deal with one function
