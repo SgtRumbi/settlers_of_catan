@@ -1,5 +1,6 @@
 #include "socatan_types.h"
 #include "socatan_input.h"
+#include "socatan_memory.h"
 
 #if !defined(SETTLERS_OF_CATAN_GAME_H)
 
@@ -118,7 +119,13 @@ struct game_state {
     uint32 PlayerCount = 2;
 };
 
-void UpdateGame(input *GameInput);
+/**
+ * Function gets called every frame.
+ *
+ * @param PermanentMemory Memory can be used and accessed anytime, memory is persistent and will stay.
+ * @param FrameMemory Memory cleared after each frame -> Can be used for rendering/frame-stuff.
+ */
+void UpdateGame(memory_chunk *PermanentMemory, memory_chunk *FrameMemory, input *GameInput);
 
 #define SETTLERS_OF_CATAN_GAME_H
 #endif // SETTLERS_OF_CATAN_GAME_H
