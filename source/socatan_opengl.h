@@ -38,6 +38,7 @@ typedef void (*gl_framebuffer_texture)(GLenum, GLenum, uint32, int32);
 typedef void (*gl_get_shaderiv)(uint32, GLenum, int32 *);
 typedef void (*gl_get_shader_info_log)(uint32, GLsizei, GLsizei *, char *);
 
+// TODO(js): Why are those all nullptrs?
 static gl_buffer_data glBufferData;
 static gl_bind_buffer glBindBuffer;
 static gl_create_shader glCreateShader;

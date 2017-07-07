@@ -76,7 +76,16 @@ void
 RenderGame(game_state *GameState) {
     static bool32 Initialized = false;
     static program DefaultProgram;
+    static GLuint BufferID = 1;
     if(!Initialized) {
+        glBindBuffer(GL_ARRAY_BUFFER, BufferID);
+        r32 Vertices[6] = {
+                0.0f, 0.0f,
+                1.0f, 0.0f,
+                1.0f, 1.0f
+        };
+        glBufferData(GL_ARRAY_BUFFER, 6*sizeof(r32), Vertices, GL_STATIC_DRAW);
+
         CreateDefaultProgram(&DefaultProgram);
 
         Initialized = true;
