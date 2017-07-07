@@ -1,7 +1,24 @@
+#if !defined(SETTLERS_OF_CATAN_OPENGL_H)
+
 #include <GL/gl.h>
 #include <cstdio>
 
-#if !defined(SETTLERS_OF_CATAN_OPENGL_H)
+static char *GlobalHeaderCode = R"FOO(
+#version 150
+
+#define v2 vec2
+#define v3 vec3
+#define v4 vec4
+
+#define V2 vec2
+#define V3 vec3
+#define V4 vec4
+
+#define m4x4 mat4x4
+
+#define f32 float
+#define i32 int
+)FOO";
 
 typedef void (*gl_buffer_data)(GLenum, GLsizeiptr, const GLvoid *, GLenum);
 typedef void (*gl_bind_buffer)(GLenum, uint32);
@@ -41,20 +58,18 @@ static gl_get_shader_info_log glGetShaderInfoLog;
 
 struct program {
     GLuint Handle;
-    GLboolean Linked;
+    int32 Linked;
+
+    GLint PositionID;
 };
 
 inline GLuint
 CreateShader(GLenum Type, char *Header, char *Content) {
     GLuint Result = glCreateShader(Type);
 
-    char *SourceStrings[2] = {
-      Header,
-      Content
-    };
+    char *SourceStrings[2] = {Header, Content};
 
-
-    glShaderSource(Result, 2, SourceStrings, 0);
+    glShaderSource(Result, 2, (const GLchar *const *)SourceStrings, 0);
     glCompileShader(Result);
 
     return(Result);
@@ -62,7 +77,7 @@ CreateShader(GLenum Type, char *Header, char *Content) {
 
 inline GLuint
 CreateProgram(program *Program, char *SharedHeader, char *VertexShaderCode, char *FragmentShaderCode) {
-    GLuint Result;
+    GLuint Result = 0;
 
     GLuint VertexShader = CreateShader(GL_VERTEX_SHADER, SharedHeader, VertexShaderCode);
     GLuint FragmentShader = CreateShader(GL_FRAGMENT_SHADER, SharedHeader, FragmentShaderCode);
@@ -90,6 +105,12 @@ UseProgram(program *Program) {
     } else {
         glUseProgram(0);
     }
+}
+
+inline void
+BindTex(GLenum Slot, GLenum Target, GLuint Handle) {
+    glActiveTexture(Slot);
+    glBindTexture(Target, Handle);
 }
 
 #define SETTLERS_OF_CATAN_OPENGL_H

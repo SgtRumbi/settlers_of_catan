@@ -5,6 +5,29 @@
 #define DEFAULT_CIRCLE_SAMPLES 6
 
 static void
+CreateDefaultProgram(program *Result) {
+    char *VertexShader = R"FOO(
+in v2 Position;
+
+void main(void) {
+gl_Position = V4(P, 0.0f, 1.0f);
+}
+)FOO";
+
+    char *FragmentShader = R"FOO(
+out v4 Color;
+
+void main(void) {
+Color = V4(0.84f, 0.13f, 0.45f);
+}
+)FOO";
+
+    GLuint Handle = CreateProgram(Result, GlobalHeaderCode, VertexShader, FragmentShader);
+
+    Result->PositionID = glGetAttribLocation(Handle, "Position");
+}
+
+static void
 DrawRectangle(v2 PStart, v2 PEnd, v4 Color) {
     glColor4fv(Color.E);
     glBegin(GL_TRIANGLES);
@@ -20,6 +43,7 @@ DrawRectangle(v2 PStart, v2 PEnd, v4 Color) {
     glEnd();
 }
 
+// TODO(js): Make this work.
 static void
 DrawCircle(v2 P, r32 Radius, v4 Color, u32 SampleCount = DEFAULT_CIRCLE_SAMPLES) {
     v2 Vertices2D[SampleCount];
@@ -50,6 +74,14 @@ DrawCircle(v2 P, r32 Radius, v4 Color, u32 SampleCount = DEFAULT_CIRCLE_SAMPLES)
 
 void
 RenderGame(game_state *GameState) {
+    static bool32 Initialized = false;
+    static program DefaultProgram;
+    if(!Initialized) {
+        CreateDefaultProgram(&DefaultProgram);
+
+        Initialized = true;
+    }
+
     glClearColor(0.23f, 0.34f, 0.45f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     DrawCircle(V2(0.0f, 0.0f), 1.0f, V4(0.15f, 0.46f, 0.16f, 1.0f));

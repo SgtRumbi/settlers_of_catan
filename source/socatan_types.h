@@ -33,8 +33,10 @@ typedef bool32 b32;
 
 typedef float_t real32;
 typedef real32 r32;
+typedef real32 f32;
 typedef double_t real64;
 typedef real64 r64;
+typedef real64 f64;
 
 #define SETTLERS_OF_CATAN_TYPES_H
 #endif // SETTLERS_OF_CATAN_TYPES_H

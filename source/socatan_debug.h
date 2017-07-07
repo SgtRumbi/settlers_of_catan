@@ -1,15 +1,15 @@
+#if !defined(SETTLERS_OF_CATAN_DEBUG_H)
+
 #include <cstdio>
 #include <x86intrin.h>
 #include "socatan_types.h"
 
-#if !defined(SETTLERS_OF_CATAN_DEBUG_H)
-
 // TODO(js): Make working.
 
-unsigned long long DebugCycleCounters[255];
+unsigned long long int DebugCycleCounters[255];
 
 struct cycle_counter {
-    unsigned long long StartTime;
+    unsigned long long int StartTime;
     uint64 ID;
 
     cycle_counter(uint64 ID) : ID(ID) {
@@ -18,7 +18,7 @@ struct cycle_counter {
     }
 
     ~cycle_counter() {
-        unsigned long long dT = __rdtsc() - StartTime;
+        unsigned long long int dT = __rdtsc() - StartTime;
         printf("End %llu\n", dT);
 
         DebugCycleCounters[ID] = dT;
