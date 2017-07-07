@@ -1,0 +1,1 @@
+/usr/bin/c++    -std=c++11 -g   CMakeFiles/settlers_of_catan.dir/source/platform/linux_socatan_main.cpp.o CMakeFiles/settlers_of_catan.dir/source/socatan.cpp.o CMakeFiles/settlers_of_catan.dir/source/socatan_render.cpp.o  -o settlers_of_catan -rdynamic -lGL -lX11 

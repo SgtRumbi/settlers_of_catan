@@ -3,6 +3,8 @@
 #include "socatan_types.h"
 
 #include <malloc.h>
+#include <cstdio>
+#include <cstring>
 
 #if defined(SOC_DEBUG)
 #define Assert(Expr) if(!(Expr)) {printf("'%s' failed!", #Expr); *((int *)0) = 0;}
@@ -41,9 +43,57 @@ ZeroSize_(uint8 *Pointer, uint32 Size) {
     }
 }
 
+<<<<<<< HEAD
+#define PlatformLogInfo(...) LinuxLogInfo(__VA_ARGS__)
+#define PlatformLogWarn(...) LinuxLogWarn(__VA_ARGS__)
+#define PlatformLogError(...) LinuxLogError(__VA_ARGS__)
+
+#define LinuxLogInfo(...) printf(__VA_ARGS__); printf("\n")
+#define LinuxLogWarn(...) printf(__VA_ARGS__); printf("\n")
+#define LinuxLogError(...) printf(__VA_ARGS__); printf("\n")
+
+inline bool32
+IsExtensionSupported(const char *ExtensionsList, const char *Extension) {
+    bool32 Result = false;
+
+    if(ExtensionsList && Extension) {
+        const char *Start;
+        const char *Where;
+        const char *Terminator;
+
+        Where = strchr(Extension, ' ');
+        if (!Where && (*Extension != '\0')) {
+            for (Start = ExtensionsList;;
+                    ) {
+                Where = strstr(Start, Extension);
+
+                if (Where) {
+                    Terminator = Where + strlen(Extension);
+
+                    if ((Where == Start) || (*(Where - 1) == ' ')) {
+                        if ((*Terminator == ' ') || (*Terminator == '\0')) {
+                            Result = true;
+                            break;
+                        }
+                    }
+
+                    Start = Terminator;
+                } else {
+                    break;
+                }
+            }
+        } else {
+            Result = false;
+        }
+    }
+
+    return(Result);
+}
+=======
 #define Kilobytes(KBs) ((KBs)*1024L)
 #define Megabytes(MBs) (Kilobytes(MBs)*1024L)
 #define Gigabytes(GBs) (Megabytes(GBs)*1024L)
+>>>>>>> adfbfeeb27d93c12122279171cbd86c643864c58
 
 #define SETTLERS_OF_CATAN_UTIL_H
 #endif // SETTLERS_OF_CATAN_UTIL_H

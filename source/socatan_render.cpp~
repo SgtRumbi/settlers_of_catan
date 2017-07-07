@@ -1,28 +1,5 @@
 #include "socatan_render.h"
-#include "socatan_math.h"
-
-#define DEFAULT_CIRCLE_SAMPLES 32
-
-static void
-DrawCircle(v2 Position, r32 Radius, u32 SampleCount = DEFAULT_CIRCLE_SAMPLES) {
-    v2 Vertices2D[SampleCount];
-
-    for(uint32 SampleIndex = 0;
-        SampleIndex < SampleCount;
-        ++SampleIndex) {
-        // Vertices2D[SampleIndex].X = Sin();
-    }
-}
-
-void
-RenderGame(game_state *GameState) {
-
-}
-#if 0
-=======
 #include "socatan_opengl.h"
-
-#include <cstdio>
 
 static void
 DrawHexagon(real32 CenterX, real32 CenterY, real32 Radius) {
@@ -31,6 +8,21 @@ DrawHexagon(real32 CenterX, real32 CenterY, real32 Radius) {
    
 }
 
+#if 0
+union v2 {
+  struct {
+    real32 X, Y;
+  };
+
+ real32 E[2];
+}
+
+v2 V2() {
+  v2 Result = {};
+  
+  return(Result);
+}
+#endif
 
 void
 RenderGame(game_state *Field) {
@@ -80,4 +72,3 @@ RenderGame(game_state *Field) {
   
   glEnd();
 }
-#endif
