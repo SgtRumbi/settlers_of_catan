@@ -7,19 +7,44 @@
 
 inline real32
 DegreesToRadians(real32 Degrees) {
-    real32 Result = (2.0f * Pi32 * Degrees) / 360.0f;
-    return(Result);
+    real32 Radians = (Pi32 * Degrees) / 180.0f;
+    return(Radians);
 }
 
 inline real32
 RadiansToDegrees(real32 Radians) {
-    real32 Result = (360.0f * Radians) / (2.0f * Pi32);
+    real32 Degrees = (180.0f * Radians) / Pi32;
+    return(Degrees);
+}
+
+inline real32
+SinR(real32 Radians) {
+    real32 Result = sinf(Radians);
+
     return(Result);
 }
 
 inline real32
 SinD(real32 Degrees) {
+    real32 Radians = DegreesToRadians(Degrees);
+    real32 Result = SinR(Radians);
 
+    return(Result);
+}
+
+inline real32
+CosR(real32 Radians) {
+    real32 Result = cosf(Radians);
+
+    return(Result);
+}
+
+inline real32
+CosD(real32 Degrees) {
+    real32 Radians = DegreesToRadians(Degrees);
+    real32 Result = CosR(Radians);
+
+    return(Result);
 }
 
 inline real32
@@ -185,6 +210,38 @@ operator/(v2 A, real32 B) {
     Result.X = A.X/B;
     Result.Y = A.Y/B;
     return(Result);
+}
+
+inline v2
+operator+=(v2 &First, v2 Other) {
+    First.X += Other.X;
+    First.Y += Other.Y;
+
+    return(First);
+}
+
+inline v2
+operator-=(v2 &First, v2 Other) {
+    First.X -= Other.X;
+    First.Y -= Other.Y;
+
+    return(First);
+}
+
+inline v2
+operator*=(v2 &First, v2 Other) {
+    First.X *= Other.X;
+    First.Y *= Other.Y;
+
+    return(First);
+}
+
+inline v2
+operator/=(v2 &First, v2 Other) {
+    First.X /= Other.X;
+    First.Y /= Other.Y;
+
+    return(First);
 }
 
 inline real32

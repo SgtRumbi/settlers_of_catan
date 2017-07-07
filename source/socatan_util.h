@@ -43,7 +43,6 @@ ZeroSize_(uint8 *Pointer, uint32 Size) {
     }
 }
 
-<<<<<<< HEAD
 #define PlatformLogInfo(...) LinuxLogInfo(__VA_ARGS__)
 #define PlatformLogWarn(...) LinuxLogWarn(__VA_ARGS__)
 #define PlatformLogError(...) LinuxLogError(__VA_ARGS__)
@@ -56,7 +55,7 @@ inline bool32
 IsExtensionSupported(const char *ExtensionsList, const char *Extension) {
     bool32 Result = false;
 
-    if(ExtensionsList && Extension) {
+    if (ExtensionsList && Extension) {
         const char *Start;
         const char *Where;
         const char *Terminator;
@@ -87,13 +86,12 @@ IsExtensionSupported(const char *ExtensionsList, const char *Extension) {
         }
     }
 
-    return(Result);
+    return (Result);
 }
-=======
+
 #define Kilobytes(KBs) ((KBs)*1024L)
 #define Megabytes(MBs) (Kilobytes(MBs)*1024L)
 #define Gigabytes(GBs) (Megabytes(GBs)*1024L)
->>>>>>> adfbfeeb27d93c12122279171cbd86c643864c58
 
 #define SETTLERS_OF_CATAN_UTIL_H
 #endif // SETTLERS_OF_CATAN_UTIL_H

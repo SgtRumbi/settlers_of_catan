@@ -1,83 +1,57 @@
 #include "socatan_render.h"
 #include "socatan_math.h"
+#include "socatan_opengl.h"
 
-#define DEFAULT_CIRCLE_SAMPLES 32
+#define DEFAULT_CIRCLE_SAMPLES 6
 
 static void
-DrawCircle(v2 Position, r32 Radius, u32 SampleCount = DEFAULT_CIRCLE_SAMPLES) {
+DrawRectangle(v2 PStart, v2 PEnd, v4 Color) {
+    glColor4fv(Color.E);
+    glBegin(GL_TRIANGLES);
+
+    glVertex2f(PStart.X, PStart.Y);
+    glVertex2f(PEnd.X, PStart.Y);
+    glVertex2f(PEnd.X, PEnd.Y);
+
+    glVertex2f(PStart.X, PStart.Y);
+    glVertex2f(PStart.X, PEnd.Y);
+    glVertex2f(PEnd.X, PEnd.Y);
+
+    glEnd();
+}
+
+static void
+DrawCircle(v2 P, r32 Radius, v4 Color, u32 SampleCount = DEFAULT_CIRCLE_SAMPLES) {
     v2 Vertices2D[SampleCount];
 
     for(uint32 SampleIndex = 0;
         SampleIndex < SampleCount;
         ++SampleIndex) {
-        // Vertices2D[SampleIndex].X = Sin();
+        Vertices2D[SampleIndex].X = Radius*SinD((r32)SampleIndex / (r32)SampleCount);
+        Vertices2D[SampleIndex].Y = Radius*CosD((r32)SampleIndex / (r32)SampleCount);
     }
+
+    // TODO(js): Get rid of legacy
+    glColor4fv(Color.E);
+
+    glBegin(GL_POLYGON);
+
+    // glVertex2f(Position.X, Position.Y);
+    for(uint32 SampleIndex = 0;
+        SampleIndex < SampleCount;
+        ++SampleIndex) {
+        v2 Vertex = Vertices2D[SampleIndex];
+        // glVertex2f(SinD(2 * Pi32 * (r32)SampleIndex / (r32)SampleIndex), CosD(2 * Pi32 * (r32)SampleIndex / (r32)SampleIndex));
+        glVertex2f(Vertex.X, Vertex.Y);
+    }
+
+    glEnd();
 }
 
 void
 RenderGame(game_state *GameState) {
-
+    glClearColor(0.23f, 0.34f, 0.45f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    DrawCircle(V2(0.0f, 0.0f), 1.0f, V4(0.15f, 0.46f, 0.16f, 1.0f));
+    DrawRectangle(V2(0.0f, 0.0f), V2(0.6f, 0.3f), V4(0.46f, 0.15f, 0.16f, 1.0f));
 }
-#if 0
-=======
-#include "socatan_opengl.h"
-
-#include <cstdio>
-
-static void
-DrawHexagon(real32 CenterX, real32 CenterY, real32 Radius) {
-  real32 X1 = CenterX;
-  real32 Y1 = CenterY - Radius;
-   
-}
-
-
-void
-RenderGame(game_state *Field) {
-  static bool32 Initialized = false;
-  static program Program;
-  static GLuint BufferHandle = 1;
-  if(!Initialized) {
-    char *Header = R"FOO(
-    #version 120
-    
-    #define v2 vec2
-    #define v4 vec4
-    #define V4 vec4
-    )FOO";
-    
-    char *VertexShaderCode = R"FOO(
-    in v2 Position;
-        
-    void main()  {
-    gl_Position = Position;
-    }
-    )FOO";
-    
-    char *FragmentShaderCode = R"FOO(
-    out v4 Color;
-    
-    void main() {
-    Color = V4(1.0f, 0.0f, 0.0f, 1.0f);
-    }
-    )FOO";
-  
-    GLuint ProgramHandle = CreateProgram(&Program, Header, VertexShaderCode, FragmentShaderCode);
-
-    // glBindBuffer(GL_ARRAY_BUFFER, BufferHandle);
-    // glBufferData(GL_ARRAY_BUFFER, 
-  
-    printf("Hier %s %d\n", __FILE__, __LINE__);
-    Initialized = true;
-  }
-
-  glColor3f(1.0f, 0.0f, 0.0f);  
-  glBegin(GL_TRIANGLES);
-  
-  glVertex2f(0.0f, 0.0f);
-  glVertex2f(1.0f, 0.0f);
-  glVertex2f(1.0f, 1.0f);
-  
-  glEnd();
-}
-#endif

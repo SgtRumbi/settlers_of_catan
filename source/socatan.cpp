@@ -3,6 +3,7 @@
 #include "socatan_util.h"
 #include "socatan_debug.h"
 #include "socatan_memory.h"
+#include "socatan_render.h"
 
 static void
 SetGameMode(game_state *State, game_mode Mode) {
@@ -111,4 +112,5 @@ UpdateGame(memory_chunk *PermanentMemory, memory_chunk *FrameMemory, input *Game
     }
 
     // TODO(js): Render game
+    RenderGame(&GameState);
 }

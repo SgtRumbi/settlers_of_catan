@@ -1,6 +1,5 @@
 #include "socatan_util.h"
 #include "socatan.h"
-<<<<<<< HEAD
 #include "socatan_types.h"
 #include "socatan_util.h"
 #include "socatan_opengl.h"
@@ -26,17 +25,22 @@ LinuxLogOpenGLContextInformation() {
                  glGetString(GL_SHADING_LANGUAGE_VERSION), glGetString(GL_EXTENSIONS));
 }
 
-#if 0
-static void
-LinuxInitializeAppMemory(app_memory *AppMemory, uint64 TransientMemorySize, uint64 PermanentMemorySize) {
-    AppMemory->TransientMemorySize = TransientMemorySize;
-    AppMemory->PermanentMemorySize = PermanentMemorySize;
-    memory_index BasePointer = 0;
-    uint64 TotalMemorySize = AppMemory->TransientMemorySize + AppMemory->PermanentMemorySize;
-    AppMemory->PermanentMemory = mmap((void *)BasePointer, TotalMemorySize, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-    AppMemory->TransientMemory = ((uint8 *)AppMemory->PermanentMemory + AppMemory->PermanentMemorySize);
+static memory_chunk
+MapMemory(memory_unit Size) {
+    memory_chunk Result = {};
+
+    Result.Base = (uint8 *)mmap(0, Size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
+    if(Result.Base != MAP_FAILED) {
+        Result.Size = Size;
+    }
+
+    return(Result);
 }
-#endif
+
+static void
+UnmapMemory(memory_chunk MemoryChunk) {
+    munmap(MemoryChunk.Base, MemoryChunk.Size);
+}
 
 int32
 main(int32 argc, char *argv[]) {
@@ -140,7 +144,7 @@ main(int32 argc, char *argv[]) {
 
                 XFree(BestVisualInfo);
 
-                XStoreName(XDisplay, XWindow, "OpenGL window");
+                XStoreName(XDisplay, XWindow, "Settlers of Catan");
                 // TODO(js): Get rid of ExposureMask?
                 // TODO(js): Add Mouse mask (or process input completely different)
                 XSelectInput(XDisplay, XWindow, ExposureMask | KeyPressMask);
@@ -195,13 +199,10 @@ main(int32 argc, char *argv[]) {
                     const char *OpenGLExtensionsString = (const char *)glGetString(GL_EXTENSIONS);
                     // PlatformLogInfo("OpenGL-Extensions: %s", OpenGLExtensionsString);
 
-                    bool32 ModernContextSupported = true;
-
                     if(IsExtensionSupported(OpenGLExtensionsString, "GL_ARB_vertex_buffer_object")) {
                         glBufferData = (gl_buffer_data)glXGetProcAddress((const GLubyte *)"glBufferData");
                         glBindBuffer = (gl_bind_buffer)glXGetProcAddress((const GLubyte *)"glBindBuffer");
                     } else {
-                        ModernContextSupported = false;
                         PlatformLogError("GL_ARB_vertex_buffer_object is not supported.");
                     }
 
@@ -216,14 +217,12 @@ main(int32 argc, char *argv[]) {
                         glGetShaderiv = (gl_get_shaderiv)glXGetProcAddressARB((const GLubyte *)"glGetShaderiv");
                         glGetShaderInfoLog = (gl_get_shader_info_log)glXGetProcAddressARB((const GLubyte *)"glGetShaderInfoLog");
                     } else {
-                        ModernContextSupported = false;
                         PlatformLogError("GL_ARB_shader_objects is not supported.");
                     }
 
                     if(IsExtensionSupported(OpenGLExtensionsString, "GL_ARB_vertex_program")) {
                         glVertexAttribPointer = (gl_vertex_attrib_pointer)glXGetProcAddressARB((const GLubyte *)"glVertexAttribPointer");
                     } else {
-                        ModernContextSupported = false;
                         PlatformLogError("GL_ARB_vertex_program is not supported.");
                     }
 
@@ -232,14 +231,10 @@ main(int32 argc, char *argv[]) {
                         glEnableVertexAttribArray = (gl_enable_vertex_attrib_array)glXGetProcAddressARB((const GLubyte *)"glEnableVertexAttribArray");
                         glDisableVertexAttribArray = (gl_disable_vertex_attrib_array)glXGetProcAddressARB((const GLubyte *)"glDisableVertexAttribArray");
                     } else {
-                        ModernContextSupported = false;
                         PlatformLogError("GL_ARB_vertex_shader is not supported.");
                     }
 
-                    bool32 SupportsFrameBufferObjects = false;
                     if(IsExtensionSupported(OpenGLExtensionsString, "GL_ARB_framebuffer_object")) {
-                        SupportsFrameBufferObjects = true;
-
                         glBindFramebuffer = (gl_bind_buffer)glXGetProcAddressARB((const GLubyte *)"glBindFramebuffer");
                         glFramebufferTexture = (gl_framebuffer_texture)glXGetProcAddressARB((const GLubyte *)"glFramebufferTexture");
                     } else {
@@ -248,33 +243,38 @@ main(int32 argc, char *argv[]) {
 
                     if(XWindow) {
                         input GameInput;
-                        
-                        XEvent CurrentXEvent;
-                        bool32 Running = true;
-                        bool32 ShouldUseModernOpenGL = false;
-                        bool32 UseModernOpenGL = (ModernContextSupported && ShouldUseModernOpenGL);
 
-                        XWindowAttributes WindowAttributes;
+                        memory_chunk PermanentMemory = MapMemory(Megabytes(64));
+                        memory_chunk FrameMemory = MapMemory(Megabytes(16));
 
-                        while(Running) {
-                            XNextEvent(XDisplay, &CurrentXEvent);
-                            switch(CurrentXEvent.type) {
-                                case Expose: {
-                                    // TODO(js): Draw is save requested!
-                                } break;
+                        if(PermanentMemory.Size && FrameMemory.Size) {
+                            XEvent CurrentXEvent;
+                            bool32 Running = true;
 
-                                case KeyPress: {
-                                    Running = false;
-                                } break;
+                            XWindowAttributes WindowAttributes;
 
-                                InvalidDefaultCase;
+                            while(Running) {
+                                XNextEvent(XDisplay, &CurrentXEvent);
+                                switch(CurrentXEvent.type) {
+                                    case Expose: {
+                                        // TODO(js): Draw is save requested!
+                                    } break;
+
+                                    case KeyPress: {
+                                        Running = false;
+                                    } break;
+
+                                    InvalidDefaultCase;
+                                }
+
+                                XGetWindowAttributes(XDisplay, XWindow, &WindowAttributes);
+
+                                UpdateGame(&PermanentMemory, &FrameMemory, &GameInput);
+
+                                glXSwapBuffers(XDisplay, XWindow);
                             }
-
-                            XGetWindowAttributes(XDisplay, XWindow, &WindowAttributes);
-
-                            UpdateGame(&GameInput);
-
-                            glXSwapBuffers(XDisplay, XWindow);
+                        } else {
+                            PlatformLogError("Failed to allocate memory_chunks.");
                         }
                     } else {
                         PlatformLogError("Failed to create X11-Window.");
@@ -290,60 +290,6 @@ main(int32 argc, char *argv[]) {
         }
     } else {
         PlatformLogError("Failed to open X11-Display.");
-=======
-
-#include <sys/mman.h>
-#include <X11/X.h>
-#include <GL/glx.h>
-
-static Display *GlobalDisplay;
-
-static memory_chunk
-MapMemory(uint64 SizeInBytes) {
-    memory_chunk Result = {};
-
-    Result.Base = (uint8 *)mmap(0, SizeInBytes, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    if(Result.Base != MAP_FAILED) {
-        Result.Size = SizeInBytes;
-    }
-
-    return(Result);
-}
-
-static void
-UnmapMemory(memory_chunk *MemoryChunk) {
-    munmap(MemoryChunk->Base, MemoryChunk->Size);
-}
-
-int
-main() {
-    bool32 Running = true;
-
-    GlobalDisplay = XOpenDisplay(0);
-    if(GlobalDisplay) {
-        memory_chunk PermanentMemory = MapMemory(PERMANENT_MEMORY_SIZE);
-        memory_chunk FrameMemory = MapMemory(FRAME_MEMORY_SIZE);
-        input GameInput = {};
-        while(Running) {
-            while(XPending(GlobalDisplay)) {
-                XEvent CurrentEvent;
-                XNextEvent(GlobalDisplay, &CurrentEvent);
-
-                switch(CurrentEvent.type) {
-                    default: {
-                        printf("X-event.\n");
-                    } break;
-                }
-            }
-
-            temporary_memory FrameMemoryTemp = BeginTemporaryMemory(&FrameMemory);
-            UpdateGame(&PermanentMemory, &FrameMemory, &GameInput);
-            EndTemporaryMemory(&FrameMemoryTemp);
-        }
-        UnmapMemory(&PermanentMemory);
-    } else {
-        printf("Failed to open Display.\n");
->>>>>>> adfbfeeb27d93c12122279171cbd86c643864c58
     }
 
     return(0);

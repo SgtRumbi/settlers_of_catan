@@ -1,3 +1,0 @@
-/home/js/sw/cpp/settlers-of-catan/CMakeFiles/rebuild_cache.dir
-/home/js/sw/cpp/settlers-of-catan/CMakeFiles/edit_cache.dir
-/home/js/sw/cpp/settlers-of-catan/CMakeFiles/settlers_of_catan.dir
