@@ -1,6 +1,6 @@
-#include "socatan_types.h"
+#if !defined(SETTLERS_OF_CATAN_INPUT_H)
 
-#ifndef SETTLERS_OF_CATAN_INPUT_H
+#include "socatan_types.h"
 
 #define MAX_KEYS 1024
 #define MAX_MOUSE_BUTTONS 16

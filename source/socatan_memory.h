@@ -1,9 +1,9 @@
+#if !defined(SETTLERS_OF_CATAN_MEMORY_H)
+
 #include "socatan_types.h"
 #include "socatan_util.h"
 
 #include <cstddef>
-
-#if !defined(SETTLERS_OF_CATAN_MEMORY_H)
 
 #define PERMANENT_MEMORY_SIZE Megabytes(64)
 #define FRAME_MEMORY_SIZE Megabytes(32)

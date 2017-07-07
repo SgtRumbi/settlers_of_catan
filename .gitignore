@@ -1,5 +1,11 @@
 # Files ignored by git
 
+CMakeFiles
+CMakeCache.txt
+CMakeLists.txt~
+cmake_install.cmake
+settlers_of_catan
+Makefile
 bin/
 cmake-build-debug/
 .idea/
