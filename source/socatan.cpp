@@ -1,7 +1,8 @@
+#include <x86intrin.h>
 #include "socatan.h"
 #include "socatan_util.h"
-
-#include <cstdio>
+#include "socatan_debug.h"
+#include "socatan_memory.h"
 
 static void
 SetGameMode(game_state *State, game_mode Mode) {
@@ -28,6 +29,7 @@ BuildGameField(game_field *GameField) {
     // Assert(!"Not yet implemented!");
 
     // Honeycomb-shape:
+    //
     //      _
     //    _/ \_
     //  _/ \_/ \_
@@ -35,7 +37,6 @@ BuildGameField(game_field *GameField) {
     // \_/ \_/ \_/
     //   \_/ \_/
     //     \_/
-    //
     //
     // Nodes: Corners (30)
     // TODO(js): Make dynamic
@@ -71,8 +72,13 @@ InitializePlayers(player *Players, uint32 PlayerCount) {
     }
 }
 
+struct test_struct {
+    uint32 Uint32;
+    uint64 *ArrayOfBigInts;
+};
+
 void
-UpdateGame(input *GameInput) {
+UpdateGame(memory_chunk *PermanentMemory, memory_chunk *FrameMemory, input *GameInput) {
     //
     // NOTE(js): Explanation: This is set up in this weird way to be able to _later_ run this in a game loop -> have
     // initialisation, update and render in one call (-> Platform-layer just has to deal with one function
@@ -94,11 +100,11 @@ UpdateGame(input *GameInput) {
     // TODO(js): Update game
     switch(GameState.CurrentMode) {
         case GameMode_StartPhase: {
-
+            // Preparation phase
         } break;
 
         case GameMode_GamePhase: {
-
+            // In game
         } break;
 
         InvalidDefaultCase;

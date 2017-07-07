@@ -11,5 +11,8 @@ set(SOURCE_FILES
         source/platform/linux_socatan_main.cpp
         source/socatan.cpp
         source/socatan.h
-        source/socatan_types.h source/socatan_util.h source/socatan_input.h)
+        source/socatan_types.h
+        source/socatan_util.h
+        source/socatan_input.h source/socatan_debug.h source/socatan_memory.cpp source/socatan_memory.h)
 add_executable(settlers_of_catan ${SOURCE_FILES})
+target_link_libraries(settlers_of_catan GL X11)
