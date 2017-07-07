@@ -111,7 +111,7 @@ UpdateGame(input *GameInput) {
     // TODO(js): Render game
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // printf("Hier %s %d\n", __FILE__, __LINE__);
+    printf("Hier %s %d\n", __FILE__, __LINE__);
     
     RenderGame(&GameState); 
 }

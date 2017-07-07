@@ -1,11 +1,59 @@
-#include "socatan.h"
-#include "socatan_types.h"
-#include "socatan_util.h"
-#include "socatan_opengl.h"
-
-#include <GL/glx.h>
-#include <X11/X.h>
+#include <cstdio>
+#include <cstring>
+#include <GL/gl.h>
 #include <sys/mman.h>
+
+#define PlatformLogInfo(...) LinuxLogInfo(__VA_ARGS__)
+#define PlatformLogWarn(...) LinuxLogWarn(__VA_ARGS__)
+#define PlatformLogError(...) LinuxLogError(__VA_ARGS__)
+
+#define LinuxLogInfo(...) printf(__VA_ARGS__); printf("\n")
+#define LinuxLogWarn(...) printf(__VA_ARGS__); printf("\n")
+#define LinuxLogError(...) printf(__VA_ARGS__); printf("\n")
+
+#include "platform.h"
+
+typedef void (*gl_buffer_data)(GLenum, GLsizeiptr, const GLvoid *, GLenum);
+typedef void (*gl_bind_buffer)(GLenum, uint32);
+typedef uint32 (*gl_create_shader)(GLenum);
+typedef void (*gl_shader_source)(uint32, GLsizei, const GLchar * const *, const GLint *);
+typedef void (*gl_compile_shader)(uint32);
+typedef uint32 (*gl_create_program)(void);
+typedef void (*gl_attach_shader)(uint32, uint32);
+typedef void (*gl_link_program)(uint32);
+typedef void (*gl_use_program)(uint32);
+typedef void (*gl_vertex_attrib_pointer)(uint32, int32, GLenum, GLboolean, GLsizei, const GLvoid *);
+typedef int32 (*gl_get_attrib_location)(uint32, const char *);
+typedef void (*gl_enable_vertex_attrib_array)(uint32);
+typedef void (*gl_disable_vertex_attrib_array)(uint32);
+typedef void (*gl_bind_framebuffer)(GLenum, uint32);
+typedef void (*gl_framebuffer_texture)(GLenum, GLenum, uint32, int32);
+typedef void (*gl_get_shaderiv)(uint32, GLenum, int32 *);
+typedef void (*gl_get_shader_info_log)(uint32, GLsizei, GLsizei *, char *);
+
+static gl_buffer_data glBufferData;
+static gl_bind_buffer glBindBuffer;
+static gl_create_shader glCreateShader;
+static gl_shader_source glShaderSource;
+static gl_compile_shader glCompileShader;
+static gl_attach_shader glAttachShader;
+static gl_create_program glCreateProgram;
+static gl_link_program glLinkProgram;
+static gl_use_program glUseProgram;
+static gl_vertex_attrib_pointer glVertexAttribPointer;
+static gl_get_attrib_location glGetAttribLocation;
+static gl_enable_vertex_attrib_array glEnableVertexAttribArray;
+static gl_disable_vertex_attrib_array glDisableVertexAttribArray;
+static gl_bind_framebuffer glBindFramebuffer;
+static gl_framebuffer_texture glFramebufferTexture;
+static gl_get_shaderiv glGetShaderiv;
+static gl_get_shader_info_log glGetShaderInfoLog;
+
+// Above X11 bc defines... :/
+#include "pfind.cpp"
+
+#include <X11/Xlib.h>
+#include <GL/glx.h>
 
 typedef GLXContext (*glx_create_context_attribs_arb)(Display *, GLXFBConfig, GLXContext, Bool, const int *);
 
@@ -24,7 +72,6 @@ LinuxLogOpenGLContextInformation() {
                  glGetString(GL_SHADING_LANGUAGE_VERSION), glGetString(GL_EXTENSIONS));
 }
 
-#if 0
 static void
 LinuxInitializeAppMemory(app_memory *AppMemory, uint64 TransientMemorySize, uint64 PermanentMemorySize) {
     AppMemory->TransientMemorySize = TransientMemorySize;
@@ -34,7 +81,6 @@ LinuxInitializeAppMemory(app_memory *AppMemory, uint64 TransientMemorySize, uint
     AppMemory->PermanentMemory = mmap((void *)BasePointer, TotalMemorySize, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
     AppMemory->TransientMemory = ((uint8 *)AppMemory->PermanentMemory + AppMemory->PermanentMemorySize);
 }
-#endif
 
 int32
 main(int32 argc, char *argv[]) {
@@ -240,17 +286,29 @@ main(int32 argc, char *argv[]) {
 
                         glBindFramebuffer = (gl_bind_buffer)glXGetProcAddressARB((const GLubyte *)"glBindFramebuffer");
                         glFramebufferTexture = (gl_framebuffer_texture)glXGetProcAddressARB((const GLubyte *)"glFramebufferTexture");
-                    } else {
-                        PlatformLogError("Failed to load extension GL_ARB_framebuffer_object.");
                     }
 
                     if(XWindow) {
-                        input GameInput;
-                        
+                        app_memory AppMemory;
+                        LinuxInitializeAppMemory(&AppMemory, Gigabytes(2), Megabytes(32));
+
                         XEvent CurrentXEvent;
                         bool32 Running = true;
                         bool32 ShouldUseModernOpenGL = false;
                         bool32 UseModernOpenGL = (ModernContextSupported && ShouldUseModernOpenGL);
+
+                        loop_call LoopCallInfo = {};
+                        LoopCallInfo.RenderConfiguration = UseModernOpenGL ?
+                                                           LoopCallRenderConfiguration_HardwareAcceleratedModern :
+                                                           LoopCallRenderConfiguration_HardwareAcceleratedLegacy;
+                        LoopCallInfo.HardwareContextInformation.HardwareAcceleratedContextInitialized = true;
+                        LoopCallInfo.HardwareContextInformation.SupportsFrameBufferObjects = SupportsFrameBufferObjects;
+                        LoopCallInfo.HardwareContextInformation.EmbeddedOpenGL = false;
+                        // TODO(js): Query/Make un-hardcoded... :)
+                        LoopCallInfo.HardwareContextInformation.OpenGLMajorVersion = 3;
+                        LoopCallInfo.HardwareContextInformation.OpenGLMajorVersion = 0;
+                        LoopCallInfo.HardwareContextInformation.ModernContext = UseModernOpenGL;
+                        LoopCallInfo.AppMemory = AppMemory;
 
                         XWindowAttributes WindowAttributes;
 
@@ -270,7 +328,10 @@ main(int32 argc, char *argv[]) {
 
                             XGetWindowAttributes(XDisplay, XWindow, &WindowAttributes);
 
-                            UpdateGame(&GameInput);
+                            LoopCallInfo.WindowWidth = WindowAttributes.width;
+                            LoopCallInfo.WindowHeight = WindowAttributes.height;
+
+                            LoopCall(&LoopCallInfo);
 
                             glXSwapBuffers(XDisplay, XWindow);
                         }
@@ -292,3 +353,9 @@ main(int32 argc, char *argv[]) {
 
     return(0);
 }
+
+    Contact GitHub API Training Shop Blog About 
+
+    © 2017 GitHub, Inc. Terms Privacy Security Status Help 
+
+

@@ -10,8 +10,7 @@ add_definitions(-DSOC_DEBUG)
 
 set(SOURCE_FILES
         source/platform/linux_socatan_main.cpp
-        source/socatan.cpp
-	source/socatan_render.cpp)
+        source/socatan.cpp)
         # source/socatan.h
         # source/socatan_types.h 
 	# source/socatan_util.h 

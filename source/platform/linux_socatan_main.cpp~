@@ -240,13 +240,11 @@ main(int32 argc, char *argv[]) {
 
                         glBindFramebuffer = (gl_bind_buffer)glXGetProcAddressARB((const GLubyte *)"glBindFramebuffer");
                         glFramebufferTexture = (gl_framebuffer_texture)glXGetProcAddressARB((const GLubyte *)"glFramebufferTexture");
-                    } else {
-                        PlatformLogError("Failed to load extension GL_ARB_framebuffer_object.");
                     }
 
                     if(XWindow) {
                         input GameInput;
-                        
+
                         XEvent CurrentXEvent;
                         bool32 Running = true;
                         bool32 ShouldUseModernOpenGL = false;

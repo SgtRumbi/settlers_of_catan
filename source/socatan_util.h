@@ -1,6 +1,8 @@
 #if !defined(SETTLERS_OF_CATAN_UTIL_H)
 
 #include <malloc.h>
+#include <cstdio>
+#include <cstring>
 
 #if defined(SOC_DEBUG)
 #define Assert(Expr) if(!(Expr)) {printf("'%s' failed!", #Expr); *((int *)0) = 0;}
@@ -37,6 +39,52 @@ ZeroSize_(uint8 *Pointer, uint32 Size) {
     while(Current--) {
         Pointer[Current] = 0;
     }
+}
+
+#define PlatformLogInfo(...) LinuxLogInfo(__VA_ARGS__)
+#define PlatformLogWarn(...) LinuxLogWarn(__VA_ARGS__)
+#define PlatformLogError(...) LinuxLogError(__VA_ARGS__)
+
+#define LinuxLogInfo(...) printf(__VA_ARGS__); printf("\n")
+#define LinuxLogWarn(...) printf(__VA_ARGS__); printf("\n")
+#define LinuxLogError(...) printf(__VA_ARGS__); printf("\n")
+
+inline bool32
+IsExtensionSupported(const char *ExtensionsList, const char *Extension) {
+    bool32 Result = false;
+
+    if(ExtensionsList && Extension) {
+        const char *Start;
+        const char *Where;
+        const char *Terminator;
+
+        Where = strchr(Extension, ' ');
+        if (!Where && (*Extension != '\0')) {
+            for (Start = ExtensionsList;;
+                    ) {
+                Where = strstr(Start, Extension);
+
+                if (Where) {
+                    Terminator = Where + strlen(Extension);
+
+                    if ((Where == Start) || (*(Where - 1) == ' ')) {
+                        if ((*Terminator == ' ') || (*Terminator == '\0')) {
+                            Result = true;
+                            break;
+                        }
+                    }
+
+                    Start = Terminator;
+                } else {
+                    break;
+                }
+            }
+        } else {
+            Result = false;
+        }
+    }
+
+    return(Result);
 }
 
 #define SETTLERS_OF_CATAN_UTIL_H
