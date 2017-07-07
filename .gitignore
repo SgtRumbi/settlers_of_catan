@@ -9,3 +9,9 @@ Makefile
 bin/
 cmake-build-debug/
 .idea/
+
+# Get rid of '~'-files.
+source/*.cpp*
+source/*/*.cpp*
+source/*.h*
+source/*/*.h*
