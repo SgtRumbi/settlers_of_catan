@@ -77,7 +77,7 @@ main(int32 argc, char *argv[]) {
     int32 WindowPositionX = 40;
     int32 WindowPositionY = 40;
     uint32 WindowDimensionX = 960;
-    uint32 WindowDimensionY = 540;
+    uint32 WindowDimensionY = 960;
 
     int32 BlueBits = 8;
     int32 GreenBits = 8;

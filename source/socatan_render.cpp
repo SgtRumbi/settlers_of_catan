@@ -3,7 +3,7 @@
 #include "socatan_opengl.h"
 
 void
-RenderGame(game_state *GameState) {
+RenderGame(memory_chunk *FrameMemory, game_state *GameState) {
     // TODO(js): Maybe other contexts?
-    OpenGLRenderGame(GameState);
+    OpenGLRenderGame(FrameMemory, GameState);
 }

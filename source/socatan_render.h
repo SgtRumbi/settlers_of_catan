@@ -2,7 +2,7 @@
 
 #include "socatan.h"
 
-void RenderGame(game_state *GameState);
+void RenderGame(memory_chunk *FrameMemory, game_state *GameState);
 
 #define SETTLERS_OF_CATAN_RENDER_H
 #endif // SETTLERS_OF_CATAN_RENDER_H

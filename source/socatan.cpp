@@ -104,5 +104,5 @@ UpdateGame(memory_chunk *PermanentMemory, memory_chunk *FrameMemory, input *Game
     }
 
     // TODO(js): Render game
-    RenderGame(&GameState);
+    RenderGame(FrameMemory, &GameState);
 }

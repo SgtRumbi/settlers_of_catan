@@ -324,6 +324,15 @@ operator*(v3 A, v3 B) {
 }
 
 inline v3
+operator*(r32 A, v3 B) {
+    v3 Result;
+    Result.X = A*B.X;
+    Result.Y = A*B.Y;
+    Result.Z = A*B.Z;
+    return(Result);
+}
+
+inline v3
 operator/(v3 A, v3 B) {
     v3 Result;
     Result.X = A.X/B.X;

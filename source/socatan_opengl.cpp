@@ -1,5 +1,4 @@
 #include "socatan_opengl.h"
-#include "socatan_math.h"
 #include "socatan_platform.h"
 
 #if !defined(GL_VERSION_1_3)
@@ -47,6 +46,11 @@ gl_framebuffer_texture *glFramebufferTexture;
 gl_get_shaderiv *glGetShaderiv;
 gl_get_shader_info_log *glGetShaderInfoLog;
 
+/**
+ * Loads all the OpenGL functions.
+ *
+ * Depends on Platform.OpenGLGetProcAddressFunction!
+ */
 static void
 LoadOpenGLFunctions() {
     const char *OpenGLExtensionsString = (const char *)glGetString(GL_EXTENSIONS);
@@ -191,18 +195,26 @@ BindTex(GLenum Slot, GLenum Target, GLuint Handle) {
 static void
 CreateDefaultProgram(program *Result) {
     char *VertexShader = R"FOO(
-in v2 P;
+layout(location = 0) in v3 P;
+layout(location = 1) in v3 N;
+layout(location = 2) in v2 UV;
+layout(location = 3) in v4 C;
+
+out v4 OutC;
 
 void main(void) {
-gl_Position = V4(P, 0.0f, 1.0f);
+gl_Position = V4(P, 1.0f);
+OutC = C;
 }
 )FOO";
 
     char *FragmentShader = R"FOO(
-out v4 Color;
+in v4 OutC;
+
+out v4 BlendUnitColor;
 
 void main(void) {
-Color = V4(0.84f, 0.13f, 0.45f, 1.0f);
+BlendUnitColor = OutC;
 }
 )FOO";
 
@@ -256,14 +268,108 @@ DrawCircle(v2 P, r32 Radius, v4 Color, u32 SampleCount = DEFAULT_CIRCLE_SAMPLES)
     glEnd();
 }
 
+static simple_mesh *
+CreateCircleVertices(memory_chunk *FrameMemory, v3 P, r32 R, u32 C, u32 Samples = 16) {
+    simple_mesh *Result = AllocateStruct(FrameMemory, simple_mesh);
+    Result->DrawMode = GL_TRIANGLE_FAN;
+    Result->Items = AllocateArray(FrameMemory, simple_mesh_data_item, Samples + 1);
+    Result->VertsCount = Samples;
+    Result->Indices = AllocateArray(FrameMemory, uint32, Samples + 1);
+    Result->IndicesCount = Samples;
+
+    Result->Items[0].P = P;
+    Result->Items[0].N = V3();
+    Result->Items[0].UV = V2();
+    Result->Items[0].C = C;
+    Result->Indices[0] = 0;
+    r32 AngleStep = 360.0f/(r32)Samples;
+    r32 Angle = 0;
+    for(uint32 CornerIndex = 1;
+        CornerIndex < Samples + 1;
+        ++CornerIndex) {
+        // r32 Angle = 360.0f*(r32)(CornerIndex - 1) / (r32)Samples;
+        v3 CornerP = P + R*V3(CosD(Angle), SinD(Angle), P.Z);
+        Angle += AngleStep;
+        Result->Items[CornerIndex].P = CornerP;
+        Result->Items[CornerIndex].N = V3(0, 0, 1);
+        Result->Items[CornerIndex].UV = V2();
+        Result->Items[CornerIndex].C = C;
+
+        Result->Indices[CornerIndex] = CornerIndex;
+    }
+
+    return(Result);
+}
+
+static simple_mesh *
+CreateRectVertices(memory_chunk *FrameMemory, v3 P, v2 Dim, u32 C) {
+    simple_mesh *Result = AllocateStruct(FrameMemory, simple_mesh);
+    Result->DrawMode = GL_TRIANGLES;
+    Result->Items = AllocateArray(FrameMemory, simple_mesh_data_item, 4);
+    Result->VertsCount = 4;
+    Result->Indices = AllocateArray(FrameMemory, uint32, 6);
+    Result->IndicesCount = 6;
+
+    Result->Items[0].P = P;
+    Result->Items[1].P = P + V3(0, Dim.Y, 0);
+    Result->Items[2].P = P + V3(Dim.X, Dim.Y, 0);
+    Result->Items[3].P = P + V3(Dim.X, 0, 0);
+
+    Result->Items[0].N = V3(0, 0, 1);
+    Result->Items[1].N = V3(0, 0, 1);
+    Result->Items[2].N = V3(0, 0, 1);
+    Result->Items[3].N = V3(0, 0, 1);
+
+    Result->Items[0].UV = V2(0, 0);
+    Result->Items[1].UV = V2(0, 1);
+    Result->Items[2].UV = V2(1, 1);
+    Result->Items[3].UV = V2(1, 0);
+
+    Result->Items[0].C = C;
+    Result->Items[1].C = C;
+    Result->Items[2].C = C;
+    Result->Items[3].C = C;
+
+    Result->Indices[0] = 0;
+    Result->Indices[1] = 1;
+    Result->Indices[2] = 2;
+    Result->Indices[3] = 2;
+    Result->Indices[4] = 3;
+    Result->Indices[5] = 0;
+
+    return(Result);
+}
+
+static void
+DrawMesh(simple_mesh *Mesh) {
+    static GLuint BufferID = 0;
+    if(!BufferID) {
+        glGenBuffers(1, &BufferID);
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, BufferID);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(simple_mesh_data_item)*Mesh->VertsCount, Mesh->Items, GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(simple_mesh_data_item), (GLvoid *)offsetof(simple_mesh_data_item, P));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(simple_mesh_data_item), (GLvoid *)offsetof(simple_mesh_data_item, N));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(simple_mesh_data_item), (GLvoid *)offsetof(simple_mesh_data_item, UV));
+    glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(simple_mesh_data_item), (GLvoid *)offsetof(simple_mesh_data_item, C));
+
+    glDrawElements(Mesh->DrawMode, Mesh->IndicesCount, GL_UNSIGNED_INT, Mesh->Indices);
+}
+
 void
-OpenGLRenderGame(game_state *GameState) {
+OpenGLRenderGame(memory_chunk *FrameMemory, game_state *GameState) {
+    // NOTE(js): Around 4 MBs should be ok.
+    Assert(FrameMemory->Size > Megabytes(4));
+
     static bool32 Initialized = false;
     static program DefaultProgram;
-    static GLuint BufferID = 1;
+    static GLuint BufferID = 0;
+    // static GLint PID = 0;
     if(!Initialized) {
         LoadOpenGLFunctions();
 
+        glGenBuffers(1, &BufferID);
         glBindBuffer(GL_ARRAY_BUFFER, BufferID);
         r32 Vertices[6] = {
                 0.0f, 0.0f,
@@ -273,15 +379,30 @@ OpenGLRenderGame(game_state *GameState) {
         glBufferData(GL_ARRAY_BUFFER, 6*sizeof(r32), Vertices, GL_STATIC_DRAW);
 
         CreateDefaultProgram(&DefaultProgram);
+        UseProgram(&DefaultProgram);
+        // PID = glGetAttribLocation(DefaultProgram.Handle, "P");
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (const void *)0);
 
         Initialized = true;
     }
 
     glClearColor(0.23f, 0.34f, 0.45f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-    DrawCircle(V2(0.0f, 0.0f), 1.0f, V4(0.15f, 0.46f, 0.16f, 1.0f));
-    DrawRectangle(V2(0.0f, 0.0f), V2(0.6f, 0.3f), V4(0.46f, 0.15f, 0.16f, 1.0f));
+    // DrawCircle(V2(0.0f, 0.0f), 1.0f, V4(0.15f, 0.46f, 0.16f, 1.0f));
+    // DrawRectangle(V2(0.0f, 0.0f), V2(0.6f, 0.3f), V4(0.46f, 0.15f, 0.16f, 1.0f));
 
     UseProgram(&DefaultProgram);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    // PID = glGetAttribLocation(DefaultProgram.Handle, "P");
+    // glEnableVertexAttribArray(PID);
+    // glBindBuffer(GL_ARRAY_BUFFER, BufferID);
+    // glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (const void *)0);
+
+    // glDrawArrays(GL_TRIANGLES, 0, 3);
+    // glDisableVertexAttribArray(PID);
+
+    // simple_mesh *RectMesh = CreateRectVertices(FrameMemory, V3(), V2(0.3f, 0.3f), 0xf4f4f0ff);
+    // DrawMesh(RectMesh);
+    simple_mesh *SimpleMesh = CreateCircleVertices(FrameMemory, V3(), 0.2f, 0xff00ffff);
+    DrawMesh(SimpleMesh);
 }

@@ -1,9 +1,10 @@
 #if !defined(SETTLERS_OF_CATAN_OPENGL_H)
 
 #include <GL/gl.h>
-#include <cstdio>
+#include "socatan_util.h"
 #include "socatan_types.h"
 #include "socatan.h"
+#include "socatan_math.h"
 
 typedef void *opengl_get_proc_address(char *Name);
 
@@ -173,6 +174,10 @@ extern gl_framebuffer_texture *glFramebufferTexture;
 static char *GlobalHeaderCode = R"FOO(
 #version 150
 
+// Or version 330
+// Or GL_ARB_explicit_attrib_location enabled
+#extension GL_ARB_separate_shader_objects : enable
+
 #define v2 vec2
 #define v3 vec3
 #define v4 vec4
@@ -194,7 +199,25 @@ struct program {
     GLint PositionID;
 };
 
-void OpenGLRenderGame(game_state *GameState);
+struct simple_mesh_data_item {
+    v3 P;
+    v3 N;
+    v2 UV;
+    uint32 C;
+};
+
+struct simple_mesh {
+    simple_mesh_data_item *Items;
+
+    uint32 *Indices;
+
+    uint32 VertsCount;
+    uint32 IndicesCount;
+
+    GLenum DrawMode;
+};
+
+void OpenGLRenderGame(memory_chunk *FrameMemory, game_state *GameState);
 
 #define SETTLERS_OF_CATAN_OPENGL_H
 #endif // SETTLERS_OF_CATAN_OPENGL_H
