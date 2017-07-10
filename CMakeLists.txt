@@ -21,6 +21,7 @@ set(SOURCE_FILES
         source/socatan_render.h
         source/socatan_math.cpp
         source/socatan_math.h
-        source/socatan_opengl.h)
+        source/socatan_opengl.h
+        source/socatan_opengl.cpp source/socatan_platform.cpp source/socatan_platform.h)
 add_executable(settlers_of_catan ${SOURCE_FILES})
 target_link_libraries(settlers_of_catan GL X11)

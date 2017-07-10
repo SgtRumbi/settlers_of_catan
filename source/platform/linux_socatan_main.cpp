@@ -1,12 +1,42 @@
 #include "socatan_util.h"
 #include "socatan.h"
-#include "socatan_types.h"
-#include "socatan_util.h"
 #include "socatan_opengl.h"
 
-#include <GL/glx.h>
 #include <X11/X.h>
+#include <GL/glx.h>
 #include <sys/mman.h>
+#include <socatan_platform.h>
+
+platform Platform;
+
+READ_ENTIRE_FILE_FUNCTION(LinuxReadEntireFile) {
+    read_entire_file_result Result = {};
+
+    FILE *FileHandle = fopen(FilePath, "rb");
+    if(FileHandle) {
+        fseek(FileHandle, 0, SEEK_END);
+        Result.Length = ftell(FileHandle);
+        fseek(FileHandle, 0, SEEK_SET);
+
+        if(Result.Length) {
+            Result.Content = AllocateBytes(MemoryChunk, (size_t)Result.Length);
+
+            if(Result.Content) {
+                fread(Result.Content, 1, (size_t)Result.Length, FileHandle);
+
+                fclose(FileHandle);
+            } else {
+                PlatformLogError("Failed to allocate %li bytes for file '%s'.", Result.Length, FilePath);
+            }
+        } else {
+            PlatformLogError("File size of file '%s' is zero!", FilePath);
+        }
+    } else {
+        PlatformLogError("Failed to open file '%s'!", FilePath);
+    }
+
+    return(Result);
+}
 
 typedef GLXContext (*glx_create_context_attribs_arb)(Display *, GLXFBConfig, GLXContext, Bool, const int *);
 
@@ -196,6 +226,9 @@ main(int32 argc, char *argv[]) {
 
                     LinuxLogOpenGLContextInformation();
 
+                    Platform.OpenGLGetProcAddressFunction = (void *(*)(char *))glXGetProcAddress;
+                    Platform.ReadEntireFile = LinuxReadEntireFile;
+#if 0
                     const char *OpenGLExtensionsString = (const char *)glGetString(GL_EXTENSIONS);
                     // PlatformLogInfo("OpenGL-Extensions: %s", OpenGLExtensionsString);
 
@@ -240,6 +273,7 @@ main(int32 argc, char *argv[]) {
                     } else {
                         PlatformLogError("Failed to load extension GL_ARB_framebuffer_object.");
                     }
+#endif
 
                     if(XWindow) {
                         input GameInput;

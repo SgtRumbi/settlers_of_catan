@@ -1,8 +1,5 @@
 #include <x86intrin.h>
 #include "socatan.h"
-#include "socatan_util.h"
-#include "socatan_debug.h"
-#include "socatan_memory.h"
 #include "socatan_render.h"
 
 static void
@@ -72,11 +69,6 @@ InitializePlayers(player *Players, uint32 PlayerCount) {
         }
     }
 }
-
-struct test_struct {
-    uint32 Uint32;
-    uint64 *ArrayOfBigInts;
-};
 
 void
 UpdateGame(memory_chunk *PermanentMemory, memory_chunk *FrameMemory, input *GameInput) {
