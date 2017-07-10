@@ -241,24 +241,30 @@ DrawRectangle(v2 PStart, v2 PEnd, v4 Color) {
 
 // TODO(js): Make this work.
 static void
-DrawCircle(v2 P, r32 Radius, v4 Color, u32 SampleCount = DEFAULT_CIRCLE_SAMPLES) {
-    v2 Vertices2D[SampleCount];
+DrawCircle(v2 P, r32 R, v4 Color, u32 SampleCount = DEFAULT_CIRCLE_SAMPLES) {
+    v2 Vertices2D[SampleCount + 1];
 
+    r32 AngleStep = 360.0f/(r32)SampleCount;
+    r32 Angle = 0;
     for(uint32 SampleIndex = 0;
-        SampleIndex < SampleCount;
+        SampleIndex < SampleCount + 1;
         ++SampleIndex) {
-        Vertices2D[SampleIndex].X = Radius*SinD((r32)SampleIndex / (r32)SampleCount);
-        Vertices2D[SampleIndex].Y = Radius*CosD((r32)SampleIndex / (r32)SampleCount);
+        Vertices2D[SampleIndex].X = R*CosD(Angle);
+        Vertices2D[SampleIndex].Y = R*SinD(Angle);
+        Vertices2D[SampleIndex] += P;
+
+        Angle += AngleStep;
     }
 
     // TODO(js): Get rid of legacy
     glColor4fv(Color.E);
 
-    glBegin(GL_POLYGON);
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2fv(P.E);
 
     // glVertex2f(Position.X, Position.Y);
     for(uint32 SampleIndex = 0;
-        SampleIndex < SampleCount;
+        SampleIndex < SampleCount + 1;
         ++SampleIndex) {
         v2 Vertex = Vertices2D[SampleIndex];
         // glVertex2f(SinD(2 * Pi32 * (r32)SampleIndex / (r32)SampleIndex), CosD(2 * Pi32 * (r32)SampleIndex / (r32)SampleIndex));
@@ -269,23 +275,23 @@ DrawCircle(v2 P, r32 Radius, v4 Color, u32 SampleCount = DEFAULT_CIRCLE_SAMPLES)
 }
 
 static simple_mesh *
-CreateCircleVertices(memory_chunk *FrameMemory, v3 P, r32 R, u32 C, u32 Samples = 16) {
+CreateCircleVertices(memory_chunk *FrameMemory, v3 P, r32 R, u32 C, u32 SampleCount = 16) {
     simple_mesh *Result = AllocateStruct(FrameMemory, simple_mesh);
     Result->DrawMode = GL_TRIANGLE_FAN;
-    Result->Items = AllocateArray(FrameMemory, simple_mesh_data_item, Samples + 1);
-    Result->VertsCount = Samples;
-    Result->Indices = AllocateArray(FrameMemory, uint32, Samples + 1);
-    Result->IndicesCount = Samples;
+    Result->Items = AllocateArray(FrameMemory, simple_mesh_data_item, SampleCount + 1);
+    Result->VertsCount = SampleCount;
+    Result->Indices = AllocateArray(FrameMemory, uint32, SampleCount + 1);
+    Result->IndicesCount = SampleCount;
 
     Result->Items[0].P = P;
     Result->Items[0].N = V3();
     Result->Items[0].UV = V2();
     Result->Items[0].C = C;
     Result->Indices[0] = 0;
-    r32 AngleStep = 360.0f/(r32)Samples;
+    r32 AngleStep = 360.0f/(r32)SampleCount;
     r32 Angle = 0;
     for(uint32 CornerIndex = 1;
-        CornerIndex < Samples + 1;
+        CornerIndex < SampleCount + 1;
         ++CornerIndex) {
         // r32 Angle = 360.0f*(r32)(CornerIndex - 1) / (r32)Samples;
         v3 CornerP = P + R*V3(CosD(Angle), SinD(Angle), P.Z);
@@ -403,6 +409,8 @@ OpenGLRenderGame(memory_chunk *FrameMemory, game_state *GameState) {
 
     // simple_mesh *RectMesh = CreateRectVertices(FrameMemory, V3(), V2(0.3f, 0.3f), 0xf4f4f0ff);
     // DrawMesh(RectMesh);
-    simple_mesh *SimpleMesh = CreateCircleVertices(FrameMemory, V3(), 0.2f, 0xff00ffff);
-    DrawMesh(SimpleMesh);
+    // simple_mesh *SimpleMesh = CreateCircleVertices(FrameMemory, V3(), 0.2f, 0xff00ffff);
+    // DrawMesh(SimpleMesh);
+
+    DrawCircle(V2(), 0.4f, V4(0.0f, 1.0f, 0.0f, 1.0f), 128);
 }
